@@ -1,6 +1,6 @@
 -- [[
 --    FILENAME: audio-visualizer.lua
---    VERSION:  v3.5 (Window Resize Race-Condition Fix)
+--    VERSION:  v3.6 (Particle Visualizer)
 --    DESCRIPTION: Crash-free visualizer cycler + toggle for Audio files only
 -- ]]
 
@@ -11,11 +11,14 @@ local styles = {
     { name = "CQT Bars", filter = "showcqt=s=1280x720:fps=60:bar_h=200:axis_h=0" },
     { name = "Vectorscope", filter = "avectorscope=s=1280x720:draw=line" },
     { name = "Spectrum", filter = "showspectrum=s=1280x720:mode=separate:color=intensity:slide=scroll:scale=cbrt" },
-    { name = "Waveform", filter = "showwaves=s=1280x720:mode=cline:colors=0x00FFFF" }
+    { name = "Waveform", filter = "showwaves=s=1280x720:mode=cline:colors=0x00FFFF" },
+    -- Audio-reactive particle field: dot rendering keeps the points crisp while
+    -- cbrt scaling lifts quieter details and channel-specific fade creates trails.
+    { name = "Particle Visualizer", filter = "avectorscope=s=1280x720:r=60:mode=lissajous_xy:draw=dot:scale=cbrt:zoom=1.45:rc=42:gc=110:bc=255:ac=255:rf=6:gf=4:bf=2:af=3" }
 }
 
 -- Default to 4 (Waveform)
-local current_style_idx = 4 
+local current_style_idx = 4
 local visualizer_active = false
 local is_toggling = false
 
@@ -25,7 +28,7 @@ local function is_audio_file()
     local has_audio = false
     for _, track in ipairs(track_list) do
         if track.type == "video" and not track.image then
-            return false 
+            return false
         end
         if track.type == "audio" then
             has_audio = true
@@ -49,12 +52,12 @@ local function apply_visualizer()
     if aid == "auto" then aid = "1" end -- Fallback to track 1 if auto fails
 
     local style = styles[current_style_idx]
-    
+
     local filter_str = "[aid" .. aid .. "]asplit[ao][a]; " ..
                        "color=c=0x101218:s=1280x720:r=60[bg]; " ..
                        "[a]" .. style.filter .. "[fg]; " ..
                        "[bg][fg]overlay=shortest=1[vo]"
-    
+
     mp.set_property("audio-display", "no")
     mp.set_property("vid", "no")
     mp.set_property("lavfi-complex", filter_str)
@@ -64,7 +67,7 @@ end
 -- BUTTON 1: Cycle Styles
 mp.register_script_message("cycle-vis-style", function()
     if not is_audio_file() or is_toggling then return end
-    
+
     if not visualizer_active then
         visualizer_active = true
         -- If activating from off state, use current_style_idx instead of resetting to 1
@@ -80,31 +83,31 @@ end)
 -- BUTTON 2: Toggle ON / OFF Mid-Playback
 mp.register_script_message("toggle-vis-state", function()
     if not is_audio_file() or is_toggling then return end
-    
+
     is_toggling = true
     visualizer_active = not visualizer_active
-    
+
     if visualizer_active then
         apply_visualizer()
         is_toggling = false
     else
         -- Capture the audio track ID *before* destroying the filter
         local current_aid = get_audio_id()
-        
+
         -- 1. Safely kill the complex filter FIRST
         mp.set_property("vid", "no")
         mp.set_property("lavfi-complex", "")
-        
+
         -- CRITICAL FIX: Instantly catch the audio track before the OS window resize blocks the thread!
         mp.set_property("aid", current_aid)
-        
+
         mp.osd_message("🎵 Visualizer: OFF", 2)
-        
+
         -- 2. Wait 150ms for renderer to clear and window to resize, then restore album art
         mp.add_timeout(0.15, function()
             local track_list = mp.get_property_native("track-list") or {}
             local image_restored = false
-            
+
             for _, track in ipairs(track_list) do
                 if track.type == "video" and track.image then
                     mp.set_property("audio-display", "embedded-first")
@@ -114,11 +117,11 @@ mp.register_script_message("toggle-vis-state", function()
                     break
                 end
             end
-            
+
             if not image_restored then
                 mp.set_property("vid", "auto")
             end
-            is_toggling = false 
+            is_toggling = false
         end)
     end
 end)
