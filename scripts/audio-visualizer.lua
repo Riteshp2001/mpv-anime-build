@@ -1,6 +1,6 @@
 -- [[
 --    FILENAME: audio-visualizer.lua
---    VERSION:  v3.5 (Window Resize Race-Condition Fix)
+--    VERSION:  v3.6 (Particle Visualizer)
 --    DESCRIPTION: Crash-free visualizer cycler + toggle for Audio files only
 -- ]]
 
@@ -11,7 +11,9 @@ local styles = {
     { name = "CQT Bars", filter = "showcqt=s=1280x720:fps=60:bar_h=200:axis_h=0" },
     { name = "Vectorscope", filter = "avectorscope=s=1280x720:draw=line" },
     { name = "Spectrum", filter = "showspectrum=s=1280x720:mode=separate:color=intensity:slide=scroll:scale=cbrt" },
-    { name = "Waveform", filter = "showwaves=s=1280x720:mode=cline:colors=0x00FFFF" }
+    { name = "Waveform", filter = "showwaves=s=1280x720:mode=cline:colors=0x00FFFF" },
+    -- Crisp dot particles with audio-driven motion and fading RGB trails.
+    { name = "Particle Visualizer", filter = "avectorscope=s=1280x720:r=60:mode=lissajous_xy:draw=dot:scale=cbrt:zoom=1.45:rc=42:gc=110:bc=255:ac=255:rf=6:gf=4:bf=2:af=3" }
 }
 
 -- Default to 4 (Waveform)
