@@ -9,7 +9,7 @@ Loaded after `mpv.conf` by `scripts/custom-config-loader.lua`, so it survives bu
 - `vulkan-device=NVIDIA GeForce GTX 1650` and `d3d11-adapter=NVIDIA`: Vulkan lists the Radeon iGPU first, and mpv uses the first device, so the shaders ran on the iGPU.
 - `video-sync=display-resample`, `interpolation=yes`, `tscale=oversample`: smoothmotion, removes 24 fps judder on a 60 Hz screen. `g` toggles it.
 - `video-sync-max-video-change=1`: mpv's default. The build's 0.01 stops 29.97/59.94 fps video locking to 60 Hz.
-- `ytdl-format`: streams up to 1080p and no AV1 (neither GPU decodes AV1).
+- `ytdl-format`: streams up to 1080p, SDR preferred (the screen can't show HDR), no AV1 (neither GPU decodes AV1).
 - `[cache]`: 512 MiB ahead / 128 MiB back instead of 1 GiB + 1 GiB (8 GB RAM).
 - `[Low-End]`: Power Saving also turns interpolation off.
 
@@ -30,6 +30,7 @@ Loaded after `mpv.conf` by `scripts/custom-config-loader.lua`, so it survives bu
 | Clip / GIF maker ([mpv-webm](https://github.com/ekisu/mpv-webm)), MP4 output to `Videos\Clips` | `scripts/webm.lua`, `script-opts/webm.conf` | `Shift+W` |
 | Subtitle sync with [alass](https://github.com/kaegi/alass) ([autosubsync-mpv](https://github.com/joaquintorres/autosubsync-mpv) v0.33) | `scripts/autosubsync/`, `bin/alass-cli.exe`, `script-opts/autosubsync.conf` | `n` |
 | yt-dlp location for mpv | `script-opts/ytdl_hook.conf` | |
+| YouTube 403 fix: waits until YouTube serves the stream (`available_at`), as yt-dlp and newer mpv do | `scripts/ytdl-wait.lua` | |
 
 Notes:
 
